@@ -1,4 +1,4 @@
-export default plugin = {
+const plugin = {
 
     constants: {
       formatAsBullet: false, // Change to "true" if you want to format your agenda as bullet points
@@ -310,3 +310,5 @@ export default plugin = {
       console.log("Content added successfully!");
     }
   }
+
+export default plugin;
