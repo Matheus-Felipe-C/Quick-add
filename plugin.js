@@ -94,7 +94,16 @@ export default plugin = {
       console.log("Calling _insertContent function");
       await this._insertContent(app, text, textFormat, noteResult.uuid);
       console.log("Content added successfully!");
-      app.alert("Content added successfully!");
+      const actionIndex = await app.alert("Content added successfully!", {
+        actions: [
+            { icon: "search", label: "See changes in note", value: 2 }
+        ]
+      });
+
+      if (actionIndex == 2) {
+        console.log('Going to edited note');
+        await app.navigate(`https://www.amplenote.com/notes/${noteResult.uuid}`);
+      }
     },
   
     //Adds a journal entry to today's jot
@@ -127,6 +136,17 @@ export default plugin = {
   
         await this._insertContent(app, loggedText, "bullet", dailyJot);
       } else await this._insertContent(app, text, "bullet", dailyJot);
+
+      const actionIndex = await app.alert("Journal entry added!", {
+        actions: [
+            { icon: "search", label: "See changes", value: 2 }
+        ]
+      });
+
+      if (actionIndex == 2) {
+        console.log('Changing screen to jots mode');
+        app.navigate("https://www.amplenote.com/notes/jots");
+      }
     },
   
     /**
