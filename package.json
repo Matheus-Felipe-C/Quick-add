@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "esbuild": "^0.23.0"
+  },
+  "scripts": {
+    "build": "node esbuild.mjs"
+  }
+}
