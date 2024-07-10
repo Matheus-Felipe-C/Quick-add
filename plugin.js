@@ -33,8 +33,11 @@ const plugin = {
       //Has the same functionality as the {now} calculation, but with a cleaner look
       "Insert time now": async function (app) {
         try {
-          const text = "*" + await this._calculateCurrentTime();
-          return text;
+          const text = await this._calculateCurrentTime();
+          const replacedText = await app.context.replaceSelection(`**${text}** |&nbsp;`); //Adds a whitespace at the end of the string
+
+          if (replacedText) return null;
+          else return text;
         } catch (err) {
           console.log(err);
           app.alert(err);
@@ -90,6 +93,11 @@ const plugin = {
   
       //Adds the text inside the note
       const [text, textFormat, noteResult] = result; //Destructures result array to get all of the prompt inputs
+
+      //Error handling if one of the options are empty
+      if (!text) throw new Error("Text field cannot be empty");
+      if (!textFormat) throw new Error("Format option cannot be empty");
+      if (!noteResult) throw new Error("Target note cannot be empty");
   
       console.log("Calling _insertContent function");
       await this._insertContent(app, text, textFormat, noteResult.uuid);
@@ -129,6 +137,8 @@ const plugin = {
       })
   
       const [text, timeStampCheckbox] = result; //Destructuring result array to get all of the prompt inputs
+      
+      if (!text) throw new Error("Text field cannot be empty");
   
       //Calculates the current time if the user marks the checkbox and adds to the text variable
       if (timeStampCheckbox) {
@@ -162,7 +172,7 @@ const plugin = {
   
       if (minutes < 10) minutes = '0' + minutes.toString(); //Pads the minutes with a 0 if it's smaller than 10
   
-      const logTime = date.getHours() + ":" + minutes + " |";
+      const logTime = date.getHours() + ":" + minutes;
   
       console.log("Current time logged:" + logTime);
   
