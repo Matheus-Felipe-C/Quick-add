@@ -96,7 +96,6 @@ const plugin = {
 
       //Error handling if one of the options are empty
       if (!text) throw new Error("Text field cannot be empty");
-      if (!textFormat) throw new Error("Format option cannot be empty");
       if (!noteResult) throw new Error("Target note cannot be empty");
   
       console.log("Calling _insertContent function");
