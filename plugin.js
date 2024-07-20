@@ -335,7 +335,7 @@ const plugin = {
       if (!noteName) throw new Error("Note name cannot be empty");
 
       //Transforms noteTags into an array
-      const noteTagArray = new Array(noteTags.split(','));
+      const noteTagArray = noteTags.split(',');
       console.log(noteTagArray);
 
       const noteUUID = await app.createNote(noteName, noteTagArray);
