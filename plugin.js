@@ -334,7 +334,11 @@ const plugin = {
 
       if (!noteName) throw new Error("Note name cannot be empty");
 
-      const noteUUID = await app.createNote(noteName, noteTags);
+      //Transforms noteTags into an array
+      const noteTagArray = new Array(noteTags.split(','));
+      console.log(noteTagArray);
+
+      const noteUUID = await app.createNote(noteName, noteTagArray);
       console.log("Note UUID: " + noteUUID);
 
       if (!noteUUID) throw new Error("Note could not be created, notify the plugin author with error logs if this error appears");
