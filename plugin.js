@@ -99,7 +99,7 @@ const plugin = {
       if (!text) throw new Error("Text field cannot be empty");
       if (!noteResult && !createNewNote) throw new Error("Select a note or check the option to create a new one to properly continue");
 
-      if (createNewNote) noteResult = await this._createnewNote();
+      if (createNewNote) noteResult = await this._createnewNote(app);
   
       console.log("Calling _insertContent function");
       await this._insertContent(app, text, textFormat, noteResult.uuid);
