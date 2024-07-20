@@ -87,16 +87,19 @@ const plugin = {
               { label: "Task", value: "task" },
             ]
           },
-          { label: "Select a note", type: "note", options: noteHandles }
+          { label: "Select a note", type: "note", options: noteHandles },
+          { label: "Create new note?", type: "checkbox"}
         ]
       })
   
       //Adds the text inside the note
-      const [text, textFormat, noteResult] = result; //Destructures result array to get all of the prompt inputs
+      let [text, textFormat, noteResult, createNewNote] = result; //Destructures result array to get all of the prompt inputs
 
       //Error handling if one of the options are empty
       if (!text) throw new Error("Text field cannot be empty");
-      if (!noteResult) throw new Error("Target note cannot be empty");
+      if (!noteResult && !createNewNote) throw new Error("Select a note or check the option to create a new one to properly continue");
+
+      if (createNewNote) noteResult = await this._createnewNote();
   
       console.log("Calling _insertContent function");
       await this._insertContent(app, text, textFormat, noteResult.uuid);
@@ -317,6 +320,26 @@ const plugin = {
       } else await note.insertContent(text); //This will work, even when textFormat comes as null
   
       console.log("Content added successfully!");
+    },
+
+    async _createnewNote(app) {
+      const noteInfo = await app.prompt("Add information about the note below", {
+        inputs: [
+          { label: "Note name", type: "text" },
+          { label: "Add tags (Optional, max of 10)", type: "tags", limit: 10 }
+        ]
+      })
+
+      const [noteName, noteTags] = noteInfo;
+
+      if (!noteName) throw new Error("Note name cannot be empty");
+
+      const noteUUID = await app.createNote(noteName, noteTags);
+      console.log("Note UUID: " + noteUUID);
+
+      if (!noteUUID) throw new Error("Note could not be created, notify the plugin author with error logs if this error appears");
+
+      return await app.findNote({ uuid: noteUUID });
     }
   }
 
