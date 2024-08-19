@@ -70,7 +70,10 @@ const plugin = {
   
   
     /**
-     * Opens a prompt to add content inside the note
+     * Opens a prompt to add content inside the note.
+     * Calls a the function `_insertContent` to properly insert the content.
+     * @param {any} app
+     * @returns {void}
      */
     async _insertContentPrompt(app) {
       console.log("Starting insertContentPrompt...");
@@ -116,7 +119,12 @@ const plugin = {
       }
     },
   
-    //Adds a journal entry to today's jot
+    /**
+     * Adds a journal entry to today's jot.
+     * If no jot was created yet, calls the function `_createDailyJot.`
+     * @param {*} app 
+     * @returns {void}
+     */
     async _addJournalEntry(app) {
       console.log("Starting addJournalEntry function...");
   
@@ -163,7 +171,7 @@ const plugin = {
   
     /**
      * Calculates and returns the current time in the 24 hour format
-     * @return "markdown" of the current hour and minute as a String
+     * @returns {string} "markdown" of the current hour and minute as a String
      */
     async _calculateCurrentTime() {
       console.log("Calculating current time...");
@@ -183,7 +191,8 @@ const plugin = {
   
     /**
      * Creates a new daily jot note
-     * @return String of the newly created jot's UUID
+     * @param {*} app
+     * @returns {string} String of the newly created jot's UUID
      */
     async _createDailyJot(app) {
       const dt = new Date();
@@ -219,6 +228,7 @@ const plugin = {
      * Publishes the current day's schedule to the daily jot
      * @param {*} app 
      * @param {String} noteUIID 
+     * @returns {void}
      */
     async _publishSchedule(app, noteUUID) {
       console.log("Starting publish schedule function...");
@@ -265,6 +275,12 @@ const plugin = {
       await this._insertContent(app, '# Agenda\n', null, noteUUID);
     },
   
+    /**
+     * Gets all the tasks that have a Start date of today
+     * @param {*} app 
+     * @param {string} noteUUID 
+     * @returns {tasks[]} Array of task objects
+     */
     async _getTasksDueToday(app, noteUUID) {
       const taskList = await app.getNoteTasks({ uuid: noteUUID });
       const dateFormat = { month: 'long', day: 'numeric', year: 'numeric' };
@@ -297,9 +313,9 @@ const plugin = {
      * General function to insert content inside the note
      * @param {*} app 
      * @param {String} text 
-     * @param {String} textFormat - Formatting type of the text
+     * @param {String} textFormat Either one of these options: `null`, `plaintext`, `bullet`, or `task`
      * @param {String} noteUUID 
-     * @returns void
+     * @returns {void}
      */
     async _insertContent(app, text, textFormat, noteUUID) {
       /**
@@ -322,6 +338,11 @@ const plugin = {
       console.log("Content added successfully!");
     },
 
+    /**
+     * Creates a new note with tags associated.
+     * @param {*} app 
+     * @returns {noteHandle} Object of the newly created note
+     */
     async _createnewNote(app) {
       const noteInfo = await app.prompt("Add information about the note below", {
         inputs: [
