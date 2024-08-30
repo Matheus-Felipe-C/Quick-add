@@ -67,6 +67,26 @@ const plugin = {
         }
       }
     },
+    taskOption: {
+      "Schedule task as All Day": async function(app, task) {
+        try {
+          //Get today's date at 12am and full day's duration in seconds
+          let startDate = new Date(Date.now());
+          startDate.setTime(0,0,0,0);
+          let startTime = startDate * 1000;
+  
+          console.log("StartTime to set: ", startDate);
+  
+          let duration = new Date(startTime + 1440 * 60 * 1000);
+          
+          await app.updateTask(task.uuid, { startAt: startTime, endAt: duration })
+          
+        } catch (error) {
+          console.log(error);
+          app.alert(error);
+        }
+      }
+    },
   
   
     /**
