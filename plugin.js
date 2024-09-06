@@ -72,7 +72,7 @@ const plugin = {
         try {
           //Get today's date at 12am and full day's duration in seconds
           let startDate = new Date(Date.now());
-          startDate.setTime(0,0,0,0);
+          startDate.setHours(0,0,0,0);
           let startTime = startDate.getTime();
   
           console.log("StartTime to set: ", startDate);
