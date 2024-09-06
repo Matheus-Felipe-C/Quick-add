@@ -84,7 +84,7 @@ const plugin = {
           await app.updateTask(task.uuid, { startAt: startTime / 1000 });
 
           //Gets an updated stance of the task and changes its endAt duration
-          const newTask = app.getTask(task.uuid);
+          const newTask = await app.getTask(task.uuid);
 
           await app.updateTask(newTask.uuid, { endAt: duration.getTime() / 1000 });
           
