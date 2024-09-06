@@ -73,13 +73,20 @@ const plugin = {
           //Get today's date at 12am and full day's duration in seconds
           let startDate = new Date(Date.now());
           startDate.setTime(0,0,0,0);
-          let startTime = startDate * 1000;
+          let startTime = startDate.getTime();
   
           console.log("StartTime to set: ", startDate);
   
           let duration = new Date(startTime + 1440 * 60 * 1000);
+
+          console.log("endAt date to add: ", duration);
           
-          await app.updateTask(task.uuid, { startAt: startTime, endAt: duration })
+          await app.updateTask(task.uuid, { startAt: startTime / 1000 });
+
+          //Gets an updated stance of the task and changes its endAt duration
+          const newTask = app.getTask(task.uuid);
+
+          await app.updateTask(newTask.uuid, { endAt: duration.getTime() / 1000 });
           
         } catch (error) {
           console.log(error);
