@@ -70,12 +70,17 @@ const plugin = {
     taskOption: {
       "Schedule task as All Day": async function(app, task) {
         try {
-          //Get today's date at 12am and full day's duration in seconds
-          let startDate = new Date(Date.now());
-          startDate.setHours(0,0,0,0);
-          let startTime = startDate.getTime();
-  
-          console.log("StartTime to set: ", startDate);
+          let startDate = task.startAt;
+
+          // If there's no start date, set it to today
+          if (task.startAt === null) {
+            //Get today's date at 12am and full day's duration in seconds
+            startDate = new Date(Date.now());
+            startDate.setHours(0,0,0,0);
+            let startTime = startDate.getTime();
+    
+            console.log("StartTime to set: ", startDate);
+          }
   
           let duration = new Date(startTime + 1440 * 60 * 1000);
 
@@ -92,7 +97,7 @@ const plugin = {
           console.log(error);
           app.alert(error);
         }
-      }
+      },
     },
   
   
