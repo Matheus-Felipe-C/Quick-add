@@ -104,10 +104,10 @@ const plugin = {
         try {
           const todayTimestamp = Date.now();
           const dailyJot = await app.notes.dailyJot(todayTimestamp);
-          const originalNote = await app.findNote({ uuid: task.noteUUID });
+          const taskWithNoteUUID = await app.getTask(task.uuid);
+          const originalNote = await app.findNote({ uuid: taskWithNoteUUID.noteUUID });
   
-          const taskTitle = `${task.content} \n::from ${originalNote.name}`;
-  
+          const taskTitle = `${task.content}\n::from [${originalNote.name}](https://www.amplenote.com/notes/${originalNote.uuid})`;  
           await dailyJot.insertTask({ content: taskTitle });
   
           console.log(`Task duplicated to daily jot!`);
