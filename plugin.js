@@ -78,7 +78,7 @@ const plugin = {
           if (task.startAt === null) {
             startDate = new Date(Date.now());
           }
-
+          startDate = new Date(startDate * 1000);
           startDate.setHours(0,0,0,0);
           startTime = startDate.getTime();
   
