@@ -100,6 +100,22 @@ const plugin = {
           app.alert(error);
         }
       },
+      "Duplicate task to daily jot": async function (app, task) {
+        try {
+          const todayTimestamp = Date.now();
+          const dailyJot = await app.notes.dailyJot(todayTimestamp);
+          const originalNote = await app.findNote({ uuid: task.noteUUID });
+  
+          const taskTitle = `${task.content} \n::from ${originalNote.name}`;
+  
+          await dailyJot.insertTask({ content: taskTitle });
+  
+          console.log(`Task duplicated to daily jot!`);
+        } catch (error) {
+          console.log(error);
+          app.alert(error);
+        }
+      }
     },
   
   
