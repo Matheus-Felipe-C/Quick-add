@@ -77,6 +77,7 @@ const plugin = {
         // If there's no start date, set it to today
         if (task.startAt === null) {
           startDate = new Date(Date.now());
+          console.log('no start date found, setting new start date');
         }
         startDate = new Date(startDate * 1000);
         startDate.setHours(0, 0, 0, 0);
