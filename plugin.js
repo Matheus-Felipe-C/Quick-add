@@ -100,50 +100,6 @@ const plugin = {
         app.alert(error);
       }
     },
-    "Duplicate task to daily jot": async function (app, task) {
-      try {
-        const todayTimestamp = Date.now();
-        const dailyJot = await app.notes.dailyJot(todayTimestamp);
-        const taskWithNoteUUID = await app.getTask(task.uuid);
-        const originalNote = await app.findNote({ uuid: taskWithNoteUUID.noteUUID });
-
-        const taskTitle = `${task.content}\n::from [${originalNote.name}](https://www.amplenote.com/notes/${originalNote.uuid})`;
-        await dailyJot.insertTask({ content: taskTitle });
-
-        console.log(`Task duplicated to daily jot!`);
-      } catch (error) {
-        console.log(error);
-        app.alert(error);
-      }
-    },
-    "Complete original task from duplicate": async function (app, task) {
-      try {
-        //Get the original note from the duplicated task name
-        let taskTitle = task.content.split('::from');
-        console.log(taskTitle);
-
-        let noteUUID = taskTitle[1];
-        taskTitle = taskTitle[0];
-
-        noteUUID = taskTitle.replace(/\[.*?\]\(https:\/\/www\.amplenote\.com\/notes\/([a-f0-9\-]+)\)/, '$1');
-
-        const originalNote = await app.findNote({ uuid: noteUUID });
-        const noteTasks = await app.getNoteTasks(originalNote);
-
-        const originalTask = noteTasks.filter(task => {
-          let taskContent = task.content;
-          if (taskContent.trim() === taskTitle.trim()) return task;
-          return false;
-        });
-
-        await app.updateTask(originalTask.uuid, { completedAt: Math.floor(Date.now() / 1000 )});
-
-        console.log("Task updated!");
-      } catch (error) {
-        console.log(error);
-        app.alert(error);
-      }
-    }
   },
 
 
