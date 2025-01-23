@@ -168,22 +168,14 @@ const plugin = {
       inputs: [
         { label: "Text to add", type: "text" },
         { label: "Add current time before the text", type: "checkbox" },
-        { label: "Select the tags to add the new note in", type: "tags"},
+        { label: "Select the tags to add the new note in", type: "tags", limit: 1 },
       ]
     })
-    
-    const todayTimestamp = Math.floor(Date.now() / 1000);
-    let dailyJot = await app.notes.dailyJot(todayTimestamp);
-    dailyJot = dailyJot.uuid;
-    
-    //If today's jot doesn't exist, create a new daily jot
-    if (dailyJot == null) {
-      console.log("No Daily Jot for today, creating a new jot...");
-      dailyJot = await this._createDailyJot(app);
-    }
 
-    const [text, timeStampCheckbox] = result; //Destructuring result array to get all of the prompt inputs
-
+    const [text, timeStampCheckbox, tag] = result; //Destructuring result array to get all of the prompt inputs
+    
+    const dailyJot = this._checkIfDailyJotExists(app, tag);
+    
     if (!text) throw new Error("Text field cannot be empty");
 
     //Calculates the current time if the user marks the checkbox and adds to the text variable
@@ -225,12 +217,7 @@ const plugin = {
     return logTime;
   },
 
-  /**
-   * Creates a new daily jot note
-   * @param {*} app
-   * @returns {string} String of the newly created jot's UUID
-   */
-  async _createDailyJot(app) {
+  async _checkIfDailyJotExists(app, tag) {  
     const dt = new Date();
     const options = { month: 'long', day: 'numeric', year: 'numeric' }
 
@@ -250,13 +237,28 @@ const plugin = {
     let today = dt.toLocaleDateString('en', options);
 
     today = today.split(',');
-
     today[0] += suffix;
-
     today = today.join();
 
+    let dailyJot = await app.findNote({ name: today, tags: [tag] })
 
-    return await app.createNote(today, ['daily-jots']);
+    if (dailyJot == null) {
+      console.log('Could not find daily jot with selected tags, creating new daily jot...');
+      dailyJot = this._createDailyJot(app, today, tag);
+    }
+
+    return dailyJot;
+  },
+
+  /**
+   * Creates a new daily jot note
+   * @param {*} app
+   * @returns {string} String of the newly created jot's UUID
+   */
+  async _createDailyJot(app, noteName, tag) {
+
+
+    return await app.createNote(today, [tag]);
 
   },
 
