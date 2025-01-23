@@ -229,13 +229,13 @@ const plugin = {
     //Calculates the cardinal suffix
     let suffix;
 
-    if (dt.getDate() > 3 && dt.getDate() < 21) suffix = 'th';
+    if (dt.getDate() >= 11 && dt.getDate() <= 13) suffix = 'th';
     else {
       switch (dt.getDate() % 10) {
         case 1: suffix = 'st'; break;
         case 2: suffix = 'nd'; break;
-        case 2: suffix = 'rd'; break;
-        case 3: suffix = 'th'; break;
+        case 3: suffix = 'rd'; break;
+        default: suffix = 'th'; break;
       }
     }
 
