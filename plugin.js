@@ -168,11 +168,14 @@ const plugin = {
       inputs: [
         { label: "Text to add", type: "text" },
         { label: "Add current time before the text", type: "checkbox" },
-        { label: "Select the tags to add the new note in", type: "tags", limit: 1 },
+        { label: "Select the tags to add the new note in (default: daily-jots)", type: "tags", limit: 1 },
       ]
     })
 
-    const [text, timeStampCheckbox, tag] = result; //Destructuring result array to get all of the prompt inputs
+    let [text, timeStampCheckbox, tag] = result; //Destructuring result array to get all of the prompt inputs
+    
+    //If tag is not provided, default to daily-jots
+    if (tag == null) tag = 'daily-jots';
     
     const dailyJot = await this._checkIfDailyJotExists(app, tag);
     console.log('Daily jot:');
