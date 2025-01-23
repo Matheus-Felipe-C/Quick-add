@@ -195,7 +195,7 @@ const plugin = {
 
     if (actionIndex == 2) {
       console.log('Changing screen to jots mode');
-      app.navigate("https://www.amplenote.com/notes/jots");
+      app.navigate(`https://www.amplenote.com/notes/jots?tag=${tag}`);
     }
   },
 
