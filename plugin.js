@@ -174,7 +174,9 @@ const plugin = {
 
     const [text, timeStampCheckbox, tag] = result; //Destructuring result array to get all of the prompt inputs
     
-    const dailyJot = this._checkIfDailyJotExists(app, tag);
+    const dailyJot = await this._checkIfDailyJotExists(app, tag);
+    console.log('Daily jot:');
+    console.log(dailyJot);
 
     if (!text) throw new Error("Text field cannot be empty");
 
