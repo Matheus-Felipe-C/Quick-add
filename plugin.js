@@ -175,7 +175,7 @@ const plugin = {
     const [text, timeStampCheckbox, tag] = result; //Destructuring result array to get all of the prompt inputs
     
     const dailyJot = this._checkIfDailyJotExists(app, tag);
-    
+
     if (!text) throw new Error("Text field cannot be empty");
 
     //Calculates the current time if the user marks the checkbox and adds to the text variable
@@ -258,7 +258,7 @@ const plugin = {
   async _createDailyJot(app, noteName, tag) {
 
 
-    return await app.createNote(today, [tag]);
+    return await app.createNote(noteName, [tag]);
 
   },
 
