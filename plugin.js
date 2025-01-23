@@ -163,23 +163,24 @@ const plugin = {
   async _addJournalEntry(app) {
     console.log("Starting addJournalEntry function...");
 
-    const todayTimestamp = Math.floor(Date.now() / 1000);
-    let dailyJot = await app.notes.dailyJot(todayTimestamp);
-    dailyJot = dailyJot.uuid;
-
-    //If today's jot doesn't exist, create a new daily jot
-    if (dailyJot == null) {
-      console.log("No Daily Jot for today, creating a new jot...");
-      dailyJot = await this._createDailyJot(app);
-    }
-
     //Main prompt
     const result = await app.prompt("Add journal entry to today's jot", {
       inputs: [
         { label: "Text to add", type: "text" },
         { label: "Add current time before the text", type: "checkbox" },
+        { label: "Select the tags to add the new note in", type: "tags"},
       ]
     })
+    
+    const todayTimestamp = Math.floor(Date.now() / 1000);
+    let dailyJot = await app.notes.dailyJot(todayTimestamp);
+    dailyJot = dailyJot.uuid;
+    
+    //If today's jot doesn't exist, create a new daily jot
+    if (dailyJot == null) {
+      console.log("No Daily Jot for today, creating a new jot...");
+      dailyJot = await this._createDailyJot(app);
+    }
 
     const [text, timeStampCheckbox] = result; //Destructuring result array to get all of the prompt inputs
 
