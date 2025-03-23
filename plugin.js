@@ -42,7 +42,7 @@ const plugin = {
         console.log(err);
         app.alert(err);
       }
-    }
+    },
   },
 
   dailyJotOption: {
@@ -325,6 +325,7 @@ const plugin = {
    * @returns {tasks[]} Array of task objects
    */
   async _getTasksDueToday(app, noteUUID) {
+    const notesToRemove = app.settings['Removed Notes'].split(';');
     const taskList = await app.getNoteTasks({ uuid: noteUUID });
     const dateFormat = { month: 'long', day: 'numeric', year: 'numeric' };
 
@@ -334,8 +335,8 @@ const plugin = {
       const todayDate = new Date().toLocaleDateString(dateFormat);
       const startDate = new Date((task.startAt * 1000)).toLocaleDateString(dateFormat);
 
-      if (todayDate !== startDate) {
-        return false
+      if (todayDate !== startDate || notesToRemove.includes(task.noteUUID)) {
+        return false;
       }
       return task;
     });
