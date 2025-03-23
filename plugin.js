@@ -325,9 +325,10 @@ const plugin = {
    * @returns {tasks[]} Array of task objects
    */
   async _getTasksDueToday(app, noteUUID) {
-    const notesToRemove = app.settings['Removed Notes'].split(';');
+    const setting = app.settings['Removed Notes'];
     const taskList = await app.getNoteTasks({ uuid: noteUUID });
     const dateFormat = { month: 'long', day: 'numeric', year: 'numeric' };
+    const notesToRemove = setting ? setting.split(';') : '';
 
     let tasksDueToday = taskList.filter(task => {
 
