@@ -1,8 +1,11 @@
 {
   "dependencies": {
-    "esbuild": "^0.23.0"
+    "esbuild": "^0.27.2"
   },
   "scripts": {
     "build": "node esbuild.mjs"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0"
   }
 }
