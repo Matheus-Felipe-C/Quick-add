@@ -1,5 +1,5 @@
 (() => {
-  // plugin.js
+  // lib/plugin.js
   var plugin = {
     constants: {
       formatAsBullet: false
