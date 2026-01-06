@@ -1,4 +1,51 @@
 (() => {
+  // lib/helpers.js
+  function calculateCurrentTime(date = /* @__PURE__ */ new Date()) {
+    const d = new Date(date.getTime());
+    let minutes = d.getMinutes();
+    if (minutes < 10) minutes = "0" + minutes.toString();
+    const logTime = `${d.getHours()}:${minutes}`;
+    return logTime;
+  }
+  function getOrdinalSuffix(day) {
+    if (day >= 11 && day <= 13) return "th";
+    switch (day % 10) {
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
+    }
+  }
+  function buildDailyJotTitle(date = /* @__PURE__ */ new Date()) {
+    const dt = new Date(date.getTime());
+    const options = { month: "long", day: "numeric", year: "numeric" };
+    const suffix = getOrdinalSuffix(dt.getDate());
+    let today = dt.toLocaleDateString("en", options);
+    today = today.split(",");
+    today[0] += suffix;
+    today = today.join();
+    return today;
+  }
+  function getTasksDueTodayFromList(taskList, notesToRemove, dateFormat = { month: "long", day: "numeric", year: "numeric" }, todayDate = /* @__PURE__ */ new Date()) {
+    const todayStr = todayDate.toLocaleDateString(dateFormat);
+    let tasksDueToday = taskList.filter((task) => {
+      const startDate = new Date(task.startAt * 1e3).toLocaleDateString(dateFormat);
+      if (todayStr !== startDate || task.noteUUID && notesToRemove.includes(task.noteUUID)) {
+        return false;
+      }
+      return task;
+    });
+    tasksDueToday = tasksDueToday.map((task) => ({
+      content: task.content,
+      startTime: task.startAt
+    }));
+    return tasksDueToday;
+  }
+
   // lib/plugin.js
   var plugin = {
     constants: {
@@ -33,7 +80,7 @@
       //Has the same functionality as the {now} calculation, but with a cleaner look
       "Insert time now": async function(app) {
         try {
-          const text = await this._calculateCurrentTime();
+          const text = calculateCurrentTime();
           const replacedText = await app.context.replaceSelection(`**${text}** |&nbsp;`);
           if (replacedText) return null;
           else return text;
@@ -162,49 +209,12 @@
         app.navigate(`https://www.amplenote.com/notes/jots?tag=${tag}`);
       }
     },
-    /**
-     * Calculates and returns the current time in the 24 hour format
-     * @returns {string} "markdown" of the current hour and minute as a String
-     */
-    async _calculateCurrentTime() {
-      console.log("Calculating current time...");
-      const date = /* @__PURE__ */ new Date();
-      date.setTime(Date.now());
-      let minutes = date.getMinutes();
-      if (minutes < 10) minutes = "0" + minutes.toString();
-      const logTime = date.getHours() + ":" + minutes;
-      console.log("Current time logged:" + logTime);
-      return logTime;
-    },
     async _checkIfDailyJotExists(app, tag) {
-      const dt = /* @__PURE__ */ new Date();
-      const options = { month: "long", day: "numeric", year: "numeric" };
-      let suffix;
-      if (dt.getDate() >= 11 && dt.getDate() <= 13) suffix = "th";
-      else {
-        switch (dt.getDate() % 10) {
-          case 1:
-            suffix = "st";
-            break;
-          case 2:
-            suffix = "nd";
-            break;
-          case 3:
-            suffix = "rd";
-            break;
-          default:
-            suffix = "th";
-            break;
-        }
-      }
-      let today = dt.toLocaleDateString("en", options);
-      today = today.split(",");
-      today[0] += suffix;
-      today = today.join();
-      let dailyJot = await app.findNote({ name: today, tags: [tag] });
+      const todayTitle = buildDailyJotTitle();
+      let dailyJot = await app.findNote({ name: todayTitle, tags: [tag] });
       if (dailyJot == null) {
         console.log("Could not find daily jot with selected tags, creating new daily jot...");
-        dailyJot = this._createDailyJot(app, today, tag);
+        dailyJot = this._createDailyJot(app, todayTitle, tag);
       }
       return dailyJot;
     },
@@ -261,24 +271,14 @@
     async _getTasksDueToday(app, noteUUID) {
       const setting = app.settings["Removed Notes"];
       const taskList = await app.getNoteTasks({ uuid: noteUUID });
-      const dateFormat = { month: "long", day: "numeric", year: "numeric" };
       const notesToRemove = setting ? setting.split(";") : "";
-      let tasksDueToday = taskList.filter((task) => {
-        const todayDate = (/* @__PURE__ */ new Date()).toLocaleDateString(dateFormat);
-        const startDate = new Date(task.startAt * 1e3).toLocaleDateString(dateFormat);
-        if (todayDate !== startDate || notesToRemove.includes(task.noteUUID)) {
-          return false;
-        }
-        return task;
-      });
-      tasksDueToday = tasksDueToday.map((task) => {
-        const timeFormat = { hour: "numeric", minute: "2-digit", hour12: true };
-        const obj = {
-          content: task.content,
-          startTime: task.startAt
-        };
-        return obj;
-      });
+      const dateFormat = { month: "long", day: "numeric", year: "numeric" };
+      const tasksDueToday = getTasksDueTodayFromList(
+        taskList,
+        notesToRemove,
+        dateFormat,
+        /* @__PURE__ */ new Date()
+      );
       return tasksDueToday;
     },
     /**
