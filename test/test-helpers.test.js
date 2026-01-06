@@ -1,7 +1,13 @@
-import dotenv from "dotenv"
-import { jest } from "@jest/globals"
-import fetch from "isomorphic-fetch"
-import pluginObject from "../lib/plugin"
+import dotenv from "dotenv";
+import { jest } from "@jest/globals";
+import fetch from "isomorphic-fetch";
+import pluginObject from "../lib/plugin";
+import {
+  calculateCurrentTime,
+  getOrdinalSuffix,
+  buildDailyJotTitle,
+  getTasksDueTodayFromList,
+} from "../lib/helpers";
 
 dotenv.config();
 
@@ -167,3 +173,84 @@ export const mockNote = (content, name, uuid) => {
   }
   return note;
 }
+
+// --------------------------------------------------------------------------------------
+// Unit tests for pure helper functions
+
+describe("helpers.calculateCurrentTime", () => {
+  test("returns time in HH:MM format with zero-padded minutes", () => {
+    const fixedDate = new Date(2020, 0, 1, 9, 5); // Jan 1, 2020 09:05
+
+    const result = calculateCurrentTime(fixedDate);
+
+    expect(result).toBe("9:05");
+  });
+});
+
+describe("helpers.getOrdinalSuffix", () => {
+  test("handles standard ordinal cases", () => {
+    expect(getOrdinalSuffix(1)).toBe("st");
+    expect(getOrdinalSuffix(2)).toBe("nd");
+    expect(getOrdinalSuffix(3)).toBe("rd");
+    expect(getOrdinalSuffix(4)).toBe("th");
+  });
+
+  test("handles teen edge cases (11th, 12th, 13th)", () => {
+    expect(getOrdinalSuffix(11)).toBe("th");
+    expect(getOrdinalSuffix(12)).toBe("th");
+    expect(getOrdinalSuffix(13)).toBe("th");
+  });
+});
+
+describe("helpers.buildDailyJotTitle", () => {
+  test("builds a title that matches the plugin's expected format", () => {
+    const fixedDate = new Date(2020, 0, 1); // January 1, 2020
+
+    const result = buildDailyJotTitle(fixedDate);
+
+    // Default toLocaleDateString("en", { month: 'long', day: 'numeric', year: 'numeric' })
+    // would give "January 1, 2020"; helper should insert ordinal suffix after the day.
+    expect(result).toBe("January 1st, 2020");
+  });
+});
+
+describe("helpers.getTasksDueTodayFromList", () => {
+  test("filters tasks to those due today and maps to expected shape", () => {
+    const today = new Date(2020, 0, 1); // Jan 1, 2020
+    const epochSeconds = (date) => Math.floor(date.getTime() / 1000);
+
+    const tasks = [
+      {
+        content: "Task today A",
+        startAt: epochSeconds(new Date(2020, 0, 1, 10, 0)),
+        noteUUID: "keep-1",
+      },
+      {
+        content: "Task today B (removed note)",
+        startAt: epochSeconds(new Date(2020, 0, 1, 12, 0)),
+        noteUUID: "remove-me",
+      },
+      {
+        content: "Task tomorrow",
+        startAt: epochSeconds(new Date(2020, 0, 2, 9, 0)),
+        noteUUID: "keep-2",
+      },
+    ];
+
+    const notesToRemove = ["remove-me"];
+    const dateFormat = { month: "long", day: "numeric", year: "numeric" };
+
+    const result = getTasksDueTodayFromList(
+      tasks,
+      notesToRemove,
+      dateFormat,
+      today
+    );
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      content: "Task today A",
+      startTime: tasks[0].startAt,
+    });
+  });
+});
