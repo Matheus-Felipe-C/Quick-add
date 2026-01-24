@@ -196,7 +196,7 @@
       console.log(dailyJot);
       if (!text) throw new Error("Text field cannot be empty");
       if (timeStampCheckbox) {
-        const loggedText = "**" + await this._calculateCurrentTime() + "** " + text;
+        const loggedText = "**" + await calculateCurrentTime() + "** " + text;
         await this._insertContent(app, loggedText, "bullet", dailyJot);
       } else await this._insertContent(app, text, "bullet", dailyJot);
       const actionIndex = await app.alert("Journal entry added!", {
@@ -324,4 +324,5 @@ Note to add: ${note.name}`);
     }
   };
   var plugin_default = plugin;
-})();
+  return plugin_default;
+})()
