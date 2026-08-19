@@ -1,4 +1,69 @@
 (() => {
+  // lib/constants.js
+  var CONSTANTS = {
+    formatAsBullet: "false",
+    // Change to "true" if you want to format your agenda as bullet points
+    defaultJotTag: "daily-jots"
+  };
+
+  // lib/helpers.js
+  function calculateCurrentTime(date = /* @__PURE__ */ new Date()) {
+    const d = new Date(date.getTime());
+    let minutes = d.getMinutes();
+    if (minutes < 10) minutes = "0" + minutes.toString();
+    const logTime = `${d.getHours()}:${minutes}`;
+    return logTime;
+  }
+  function getOrdinalSuffix(day) {
+    if (day >= 11 && day <= 13) return "th";
+    switch (day % 10) {
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
+    }
+  }
+  function buildDailyJotTitle(date = /* @__PURE__ */ new Date()) {
+    const dt = new Date(date.getTime());
+    const options = { month: "long", day: "numeric", year: "numeric" };
+    const suffix = getOrdinalSuffix(dt.getDate());
+    let today = dt.toLocaleDateString("en", options);
+    today = today.split(",");
+    today[0] += suffix;
+    today = today.join();
+    return today;
+  }
+  function getTasksDueTodayFromList(taskList, notesToRemove, dateFormat = { month: "long", day: "numeric", year: "numeric" }, todayDate = /* @__PURE__ */ new Date()) {
+    const todayStr = todayDate.toLocaleDateString(dateFormat);
+    let tasksDueToday = taskList.filter((task) => {
+      const startDate = new Date(task.startAt * 1e3).toLocaleDateString(dateFormat);
+      if (todayStr !== startDate || task.noteUUID && notesToRemove.includes(task.noteUUID)) {
+        return false;
+      }
+      return task;
+    });
+    tasksDueToday = tasksDueToday.map((task) => ({
+      content: task.content,
+      startTime: task.startAt
+    }));
+    return tasksDueToday;
+  }
+
+  // lib/operations/jotOperations.js
+  async function getOrCreateDailyJot(app, tag) {
+    const todayTitle = buildDailyJotTitle();
+    let dailyJot = await app.findNote({ name: todayTitle, tags: [tag] });
+    if (!dailyJot) {
+      const uuid = await app.createNote(todayTitle, [tag]);
+      dailyJot = await app.findNote({ uuid });
+    }
+    return dailyJot;
+  }
+
   // lib/operations/noteOperations.js
   async function insertContent(app, text, textFormat, noteUUID) {
     const note = await app.notes.find(noteUUID);
@@ -65,55 +130,33 @@
      * @param {*} app 
      * @returns {void}
     */
+    // actions/appActions.js
     async addJournalEntry(app) {
-      const [text, timeStampCheckbox, tag = CONSTANTS.defaultJotTag] = await app.prompt("Add journal entry to today's jot", {
+      const result = await app.prompt("Add journal entry to today's jot", {
         inputs: [
           { label: "Text to add", type: "text" },
           { label: "Add current time before the text", type: "checkbox" },
           { label: "Select the tags to add the new note in (default: daily-jots)", type: "tags", limit: 1 }
         ]
       });
+      let [text, timeStampCheckbox, selectedTag] = result;
       if (!text) throw new Error("Text field cannot be empty");
-      const dailyJot = await getOrCreateDailyJot(app, tag || CONSTANTS.defaultJotTag);
-      const loggedText = timeStampCheckbox ? `**${calculateCurrentTime()}** ${text}` : text;
-      await insertContent(app, loggedText, "bullet", dailyJot.uuid || dailyJot);
+      const finalTag = selectedTag ? selectedTag.trim() : CONSTANTS.defaultJotTag;
+      const dailyJot = await getOrCreateDailyJot(app, finalTag);
+      const jotUUID = dailyJot?.uuid || dailyJot;
+      const currentTime = await calculateCurrentTime();
+      const loggedText = timeStampCheckbox ? `**${currentTime}** ${text}` : text;
+      await insertContent(app, loggedText, "bullet", jotUUID);
       const actionIndex = await app.alert("Journal entry added!", {
-        actions: [{ icon: "search", label: "See changes", value: 2 }]
+        actions: [
+          { icon: "search", label: "See changes", value: 2 }
+        ]
       });
-      if (actionIndex === 2) app.navigate(`https://www.amplenote.com/notes/jots?tag=${tag}`);
+      if (actionIndex === 2) {
+        await app.navigate(`https://www.amplenote.com/notes/${jotUUID}`);
+      }
     }
   };
-
-  // lib/constants.js
-  var CONSTANTS2 = {
-    formatAsBullet: "false",
-    // Change to "true" if you want to format your agenda as bullet points
-    defaultJotTag: "daily-jots"
-  };
-
-  // lib/helpers.js
-  function calculateCurrentTime2(date = /* @__PURE__ */ new Date()) {
-    const d = new Date(date.getTime());
-    let minutes = d.getMinutes();
-    if (minutes < 10) minutes = "0" + minutes.toString();
-    const logTime = `${d.getHours()}:${minutes}`;
-    return logTime;
-  }
-  function getTasksDueTodayFromList(taskList, notesToRemove, dateFormat = { month: "long", day: "numeric", year: "numeric" }, todayDate = /* @__PURE__ */ new Date()) {
-    const todayStr = todayDate.toLocaleDateString(dateFormat);
-    let tasksDueToday = taskList.filter((task) => {
-      const startDate = new Date(task.startAt * 1e3).toLocaleDateString(dateFormat);
-      if (todayStr !== startDate || task.noteUUID && notesToRemove.includes(task.noteUUID)) {
-        return false;
-      }
-      return task;
-    });
-    tasksDueToday = tasksDueToday.map((task) => ({
-      content: task.content,
-      startTime: task.startAt
-    }));
-    return tasksDueToday;
-  }
 
   // lib/operations/scheduleOperations.js
   async function getTasksDueToday(app, noteUUID) {
@@ -147,7 +190,7 @@
     });
     for (const task of todayTasks.reverse()) {
       const text = `**${task.timeFormatted}** ${task.textContent}`;
-      const format = CONSTANTS2.formatAsBullet ? "bullet" : "task";
+      const format = CONSTANTS.formatAsBullet ? "bullet" : "task";
       await insertContent(app, text, format, noteUUID);
     }
     await insertContent(app, "# Agenda\n", null, noteUUID);
@@ -172,7 +215,7 @@
      * @param {*} app 
      */
     async insertTimeNow(app) {
-      const text = calculateCurrentTime2();
+      const text = calculateCurrentTime();
       const replacedText = await app.context.replaceSelection(`**${text}** |&nbsp;`);
       if (replacedText) return null;
       else return text;
@@ -202,7 +245,7 @@
     }
   };
   var plugin = {
-    constants: CONSTANTS2,
+    constants: CONSTANTS,
     appOption: {
       "Insert content inside a note": wrapError((app) => AppActions.insertContentPrompt(app)),
       "Add journal entry to today's jot": wrapError((app) => AppActions.addJournalEntry(app))
@@ -218,4 +261,5 @@
     }
   };
   var plugin_default = plugin;
-})();
+  return plugin;
+})()
