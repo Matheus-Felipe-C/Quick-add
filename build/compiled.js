@@ -188,9 +188,20 @@
         textContent
       };
     });
+    const format = CONSTANTS.formatAsBullet ? "bullet" : "task";
     for (const task of todayTasks.reverse()) {
       const text = `**${task.timeFormatted}** ${task.textContent}`;
-      const format = CONSTANTS.formatAsBullet ? "bullet" : "task";
+      await insertContent(app, text, format, noteUUID);
+    }
+    const externalCalendarEvents = await app.getExternalCalendarEvents({ days: 1 });
+    for (const event of externalCalendarEvents) {
+      const start = new Date(event.start);
+      const formattedStart = start.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      });
+      const text = `**${formattedStart}** ${event.title} (External calendar)`;
       await insertContent(app, text, format, noteUUID);
     }
     await insertContent(app, "# Agenda\n", null, noteUUID);
