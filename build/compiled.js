@@ -1,7 +1,7 @@
 (() => {
   // lib/constants.js
   var CONSTANTS = {
-    formatAsBullet: "false",
+    formatAsBullet: false,
     // Change to "true" if you want to format your agenda as bullet points
     defaultJotTag: "daily-jots"
   };
@@ -67,6 +67,7 @@
   // lib/operations/noteOperations.js
   async function insertContent(app, text, textFormat, noteUUID) {
     const note = await app.notes.find(noteUUID);
+    console.log("text format: ", textFormat);
     if (textFormat === "bullet") text = `- ${text}`;
     if (textFormat === "task") {
       await note.insertTask({ content: text });
@@ -189,6 +190,7 @@
       };
     });
     const format = CONSTANTS.formatAsBullet ? "bullet" : "task";
+    console.log("Format task as: ", format);
     for (const task of todayTasks.reverse()) {
       const text = `**${task.timeFormatted}** ${task.textContent}`;
       await insertContent(app, text, format, noteUUID);
